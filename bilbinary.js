@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-const { compactify, uncompactify } = require('../lib/compactify');
+const { compactify, uncompactify } = require('./compactify');
 const dict = require('./keyword_dict.json');
 
 const BT_NUMBER = 0x01;         // floating point number
@@ -125,8 +125,11 @@ const pack_elist = (bs) => {
 
   if (hsize === 4)
     b.writeUInt32LE(offset, 0);
-  else
+  else {
+    if (offset > 65535)
+      throw new Error(`offset ${offset} too large`);
     b.writeUInt16LE(offset, 0);
+  }
   return b;
 }
 
