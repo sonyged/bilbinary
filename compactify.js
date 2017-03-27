@@ -80,10 +80,16 @@ const compactify = (obj, fvlmap) => {
 };
 
 const compactify_toplevel = (script) => {
-  const scripts = script.scripts;
-  if (!scripts)
+  if (!script.scripts)
     return compactify(script, { function: {}, variable: {}, list: {} });
 
+  // exclude 'fragment', etc.
+  const scripts = script.scripts.filter(x => [
+    'when-green-flag-clicked',
+    'function',
+    'variable',
+    'list',
+  ].includes(x.name));
   let idx = { function: 0, variable: 0, list: 0 };
   return {
     'port-settings': script['port-settings'] || {},
