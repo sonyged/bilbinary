@@ -25,6 +25,7 @@
 
 const { compactify, uncompactify } = require('./compactify');
 const dict = require('./keyword_dict.json');
+const idict = require('./insn_dict.json');
 
 const BT_NUMBER = 0x01;         // floating point number
 const BT_KEYWORD = 0x02;        // keyword
@@ -97,7 +98,7 @@ const pack_number = (key, obj) => {
 const pack_keyword = (key, obj) => {
   let b = Buffer.allocUnsafe(header_size(key) + 2);
   let offset = pack_key(b, key, BT_KEYWORD);
-  const code = dict[obj];
+  const code = key === 'name' ? idict[obj] : dict[obj];
 
   if (!code)
     throw new Error(`Failed to convert value ${obj} to code`);

@@ -25,7 +25,6 @@
 
 'use strict';
 const debug = require('debug')('compactify');
-const dict = require('./keyword_dict.json');
 
 const immediate_p = (x) => ['string', 'number', 'boolean'].includes(typeof x);
 
