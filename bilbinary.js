@@ -216,8 +216,8 @@ const pack_keyvalue = (key, obj) => {
       return pack_int8(key, obj);
     if (int16_p(obj))
       return pack_int16(key, obj);
-    if (int32_p(obj))
-      return pack_int32(key, obj);
+    // if (int32_p(obj))
+    //   return pack_int32(key, obj);
     return pack_number(key, obj);
   }
   if (typeof obj === 'string')
