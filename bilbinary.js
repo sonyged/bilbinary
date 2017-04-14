@@ -230,25 +230,20 @@ const pack_keyvalue = (key, obj) => {
 };
 
 const unpack_elist = (b, offset, obj, unpack) => {
-  console.log(`offset: ${offset}`, b);
   const hsize = elist_hsize;
   let esize = hsize === 4 ? b.readUInt32LE(offset) : b.readUInt16LE(offset);
 
-  console.log(`esize: ${esize}`);
   if (offset + esize > b.length)
     throw new Error(`Element size too large: ${offset + esize} > ${b.length}`);
 
   if (elist_nul)
     throw new Error(`Elist with terminating NUL is not supported yet`);
 
-  console.log(`unpack_elist: esize ${esize}, offset ${offset}`);
   esize += offset;
   offset += hsize;
-  console.log(`unpack_elist: esize ${esize}, offset ${offset}`);
   while (offset < esize)
     offset = unpack(b, offset, obj);
 
-  console.log(`unpack_elist: offset ${offset}`, obj);
   return offset;
 }
 
@@ -278,7 +273,6 @@ const dict_inv = invert_dict(dict);
 const idict_inv = invert_dict(idict);
 
 const unpack_element = (type, b, offset, push) => {
-  console.log(`unpack_element: type ${type}, offset: ${offset}`, b);
   switch (type) {
   case BT_INT8:
     if (b.length < 1)
@@ -336,11 +330,8 @@ const unpack_keyvalue = (b, offset, obj) => {
   if (!key)
     throw new Error(`Unknown key code: ${keyCode}`);
 
-  console.log(`unpack_keyvalue: type: ${type}, offset: ${offset}`);
-  console.log(`unpack_keyvalue: key: ${key}, keyCode: ${keyCode}`);
   const push = (v) => {
     if (type === BT_KEYWORD) {
-      console.log(`unpack_keyvalue: key: ${key}`);
       const dict = key === 'name' ? idict_inv : dict_inv;
       if (!dict[v])
         throw new Error(`Unknown keyword code: ${v}`);
