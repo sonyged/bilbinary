@@ -71,6 +71,7 @@ const pack_key = (b, key, type) => {
 const header_size = key => 1 + keyLength(key); // type followed by key
 
 const elist_nul = false;
+const elist_hsize = 2;
 const elist_size = (s) => {
   if (elist_nul)
     return s + 1;
@@ -110,8 +111,7 @@ const pack_keyword = (key, obj) => {
 };
 
 const pack_elist = (bs) => {
-  //const hsize = 4;
-  const hsize = 2;
+  const hsize = elist_hsize;
   const bslen = bs.reduce((acc, x) => acc + x.length, 0);
   let b = Buffer.allocUnsafe(elist_size(hsize + bslen));
   let offset = bs.reduce((acc, x) => {
@@ -229,14 +229,149 @@ const pack_keyvalue = (key, obj) => {
   throw new Error(`Unsupported value: ${obj} for key ${$key}`);
 };
 
+const unpack_elist = (b, offset, obj, unpack) => {
+  console.log(`offset: ${offset}`, b);
+  const hsize = elist_hsize;
+  let esize = hsize === 4 ? b.readUInt32LE(offset) : b.readUInt16LE(offset);
+
+  console.log(`esize: ${esize}`);
+  if (offset + esize > b.length)
+    throw new Error(`Element size too large: ${offset + esize} > ${b.length}`);
+
+  if (elist_nul)
+    throw new Error(`Elist with terminating NUL is not supported yet`);
+
+  console.log(`unpack_elist: esize ${esize}, offset ${offset}`);
+  esize += offset;
+  offset += hsize;
+  console.log(`unpack_elist: esize ${esize}, offset ${offset}`);
+  while (offset < esize)
+    offset = unpack(b, offset, obj);
+
+  console.log(`unpack_elist: offset ${offset}`, obj);
+  return offset;
+}
+
+const unpack_object = (b, offset, push) => {
+  let obj = {};
+
+  offset = unpack_elist(b, offset, obj, unpack_keyvalue);
+  push(obj);
+  return offset;
+}
+
+const unpack_array = (b, offset, push) => {
+  let obj = [];
+
+  offset = unpack_elist(b, offset, obj, unpack_value);
+  push(obj);
+  return offset;
+}
+
+const invert_dict = (dict) => {
+  return Object.keys(dict).reduce((acc, key) => {
+    acc[dict[key]] = key;
+    return acc;
+  }, {});
+};
+const dict_inv = invert_dict(dict);
+const idict_inv = invert_dict(idict);
+
+const unpack_element = (type, b, offset, push) => {
+  console.log(`unpack_element: type ${type}, offset: ${offset}`, b);
+  switch (type) {
+  case BT_INT8:
+    if (b.length < 1)
+      throw new Error(`Buffer too small for INT8: ${b}`);
+    push(b.readInt8(offset));
+    return offset + 1;
+  case BT_INT16:
+    if (b.length < 2)
+      throw new Error(`Buffer too small for INT16: ${b}`);
+    push(b.readInt16LE(offset));
+    return offset + 2;
+  case BT_NUMBER:
+    if (b.length < 4)
+      throw new Error(`Buffer too small for Number: ${b}`);
+    push(b.readFloatLE(offset));
+    return offset + 4;
+  case BT_KEYWORD:
+    if (b.length < 2)
+      throw new Error(`Buffer too small for Keyword: ${b}`);
+    push(b.readInt16LE(offset));
+    return offset + 2;
+  case BT_ARRAY:
+    return unpack_array(b, offset, push);
+  case BT_OBJECT:
+    return unpack_object(b, offset, push);
+  default:
+    throw new Error(`Unsupported type: ${type}`);
+  }
+};
+
+const unpack_value = (b, offset, obj) => {
+  if (b.length < 1)
+    throw new Error(`Buffer too small: ${b}`);
+
+  const type = b[offset];
+  const push = (v) => {
+    if (type === BT_KEYWORD) {
+      if (!dict_inv[v])
+        throw new Error(`Unknown keyword code: ${v}`);
+      v = dict_inv[v];
+    }
+    obj.push(v);
+  };
+  return unpack_element(type, b, offset + 1, push);
+};
+
+const unpack_keyvalue = (b, offset, obj) => {
+  if (b.length < 3)
+    throw new Error(`Buffer too small: ${b}`);
+
+  const type = b[offset];
+  const keyCode = b.readUInt16LE(offset + 1);
+  const key = dict_inv[keyCode];
+
+  if (!key)
+    throw new Error(`Unknown key code: ${keyCode}`);
+
+  console.log(`unpack_keyvalue: type: ${type}, offset: ${offset}`);
+  console.log(`unpack_keyvalue: key: ${key}, keyCode: ${keyCode}`);
+  const push = (v) => {
+    if (type === BT_KEYWORD) {
+      console.log(`unpack_keyvalue: key: ${key}`);
+      const dict = key === 'name' ? idict_inv : dict_inv;
+      if (!dict[v])
+        throw new Error(`Unknown keyword code: ${v}`);
+      v = dict[v];
+    }
+    obj[key] = v;
+  };
+  return unpack_element(type, b, offset + 3, push);
+};
+
+const unpack_document = (b) => {
+  let obj = {};
+  unpack_elist(b, 0, obj, unpack_keyvalue);
+  return obj;
+};
+
 const serialize = (obj) => {
   //process.stderr.write(JSON.stringify(obj));
   return pack_document(obj, false);
 };
 
+const deserialize = (b) => {
+  //process.stderr.write(JSON.stringify(obj));
+  return unpack_document(b);
+};
+
 function Translator(scripts)
 {
   this.translate = () => serialize(compactify(scripts));
+  this.serialize = (script) => serialize(script);
+  this.deserialize = (b) => deserialize(b);
 }
 
 module.exports = {
@@ -244,3 +379,4 @@ module.exports = {
     return new Translator(scripts);
   }
 };
+
