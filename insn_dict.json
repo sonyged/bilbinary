@@ -53,5 +53,6 @@
   "list-ref": 52,
   "list-delete": 53,
   "list-replace": 54,
-  "list-insert": 55
+  "list-insert": 55,
+  "sound-sensor-value": 56
 }

@@ -76,5 +76,6 @@
   "touch-sensor": 75,
   "light-sensor": 76,
   "ir-photo-reflector": 77,
-  "3-axis-digital-accelerometer": 78
+  "3-axis-digital-accelerometer": 78,
+  "sound-sensor": 79
 }
