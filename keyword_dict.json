@@ -77,5 +77,10 @@
   "light-sensor": 76,
   "ir-photo-reflector": 77,
   "3-axis-digital-accelerometer": 78,
-  "sound-sensor": 79
+  "sound-sensor": 79,
+  "floor": 80,
+  "ceiling": 81,
+  "asin": 82,
+  "acos": 83,
+  "atan": 84
 }
