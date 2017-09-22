@@ -24,8 +24,8 @@
  */
 
 const { compactify, uncompactify } = require('./compactify');
-const dict = require('./keyword_dict.json');
-const idict = require('./insn_dict.json');
+const dict = require('./keyword_dict.json').map;
+const idict = require('./insn_dict.json').map;
 
 const BT_NUMBER = 0x01;         // floating point number
 const BT_KEYWORD = 0x02;        // keyword
