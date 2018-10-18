@@ -78,6 +78,16 @@ const compactify = (obj, fvlmap) => {
   }, {});
 };
 
+const compactify_calibration = (calibration, port_settings) => {
+  return Object.keys(port_settings).reduce((acc, port) => {
+    if (calibration[port] &&
+        calibration[port][port_settings[port]] &&
+        typeof calibration[port][port_settings[port]] === 'object')
+      acc[port] = calibration[port][port_settings[port]];
+    return acc;
+  }, {});
+};
+
 const compactify_toplevel = (script) => {
   if (!script.scripts)
     return compactify(script, { function: {}, variable: {}, list: {} });
@@ -89,9 +99,12 @@ const compactify_toplevel = (script) => {
     'variable',
     'list',
   ].includes(x.name));
-  let idx = { function: 0, variable: 0, list: 0 };
+  const idx = { function: 0, variable: 0, list: 0 };
+  const port_settings = script['port-settings'] || {};
+  const calibration = script.calibration || {};
   return {
-    'port-settings': script['port-settings'] || {},
+    'port-settings': port_settings,
+    calibration: compactify_calibration(calibration, port_settings),
     scripts: compactify(scripts, scripts.reduce((acc, x) => {
       if (environ_p(x.name))
         acc[x.name][x[x.name]] = idx[x.name]++;
