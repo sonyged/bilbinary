@@ -179,11 +179,16 @@ describe('translate function', function() {
 
   it('should be function in binary format', function() {
     assert.deepEqual(trans.translate(), new Buffer([
-      96, 0,                    // length: 96 bytes
+      101, 0,                   // length: 101 bytes
 
       // 'port-settings': {}
       3,                        // type: object
       32, 0,                    // keyword: 'port-settings'
+      2, 0,                     // length: 2 bytes
+
+      // calibration: {}
+      3,                        // type: object
+      85, 0,                    // keyword: 'calibration'
       2, 0,                     // length: 2 bytes
 
       // scripts: [ ...
@@ -254,6 +259,159 @@ describe('translate function', function() {
       5,                        // type: int8
       35, 0,                    // keyword: 'y'
       206,                      // int8: -50
+    ]));
+  });
+});
+
+describe('translate no calibration', function() {
+  const trans = bilbinary.translator({
+    'port-settings': {},
+    scripts: []});
+
+  it('should translate no calibration', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      17, 0,                    // length: 17 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      2, 0,                     // length: 2 bytes
+
+      // calibration: {}
+      3,                        // type: object
+      85, 0,                    // keyword: 'calibration'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      2, 0,                     // length: 2 bytes
+    ]));
+  });
+});
+
+describe('translate empty calibration', function() {
+  const trans = bilbinary.translator({
+    'port-settings': { V0: 'dc-motor' },
+    calibration: {},
+    scripts: []});
+
+  it('should translate empty calibration', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      22, 0,                    // length: 22 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      7, 0,                     // length: 7 bytes
+
+      2,                        // type: keyword
+      46, 0,                    // keyword: V0
+      72, 0,                    // keyword: dc-motor
+
+      // calibration: {}
+      3,                        // type: object
+      85, 0,                    // keyword: 'calibration'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      2, 0,                     // length: 2 bytes
+    ]));
+  });
+});
+
+describe('translate nonexistent calibration', function() {
+  const trans = bilbinary.translator({
+    'port-settings': { V0: 'dc-motor' },
+    calibration: {
+      V2: { 'servo-motor': { drift: -3.0 } }
+    },
+    scripts: []});
+
+  it('should translate nonexistent calibration', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      22, 0,                    // length: 22 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      7, 0,                     // length: 7 bytes
+
+      2,                        // type: keyword
+      46, 0,                    // keyword: V0
+      72, 0,                    // keyword: dc-motor
+
+      // calibration: {}
+      3,                        // type: object
+      85, 0,                    // keyword: 'calibration'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      2, 0,                     // length: 2 bytes
+    ]));
+  });
+});
+
+describe('translate existent calibration', function() {
+  const trans = bilbinary.translator({
+    'port-settings': {
+      V0: 'dc-motor',
+      V6: 'servo-motor'
+    },
+    calibration: {
+      V0: { 'dc-motor': { scale: 0.8 } },
+      V2: { 'servo-motor': { drift: 3.0 } },
+      V6: {
+        'servo-motor': { drift: -3.0 },
+        'buzzer': { drift: -9.0 }
+      }
+    },
+    scripts: []});
+
+  it('should translate nonexistent calibration', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      48, 0,                    // length: 48 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      12, 0,                    // length: 12 bytes
+
+      2,                        // type: keyword
+      46, 0,                    // keyword: V0
+      72, 0,                    // keyword: dc-motor
+
+      2,                        // type: keyword
+      52, 0,                    // keyword: V6
+      73, 0,                    // keyword: servo-motor
+
+      // calibration: {}
+      3,                        // type: object
+      85, 0,                    // keyword: 'calibration'
+      23, 0,                    // length: 2 bytes
+
+      3,                        // type: object
+      46, 0,                    // keyword: V0
+      9, 0,                     // length: 9 bytes
+      1,                        // type: number
+      86, 0,                    // keyword: scale
+      205, 204, 76, 63,         // float: 0.800000011920929
+
+      3,                        // type: object
+      52, 0,                    // keyword: V6
+      6, 0,                     // length: 6 bytes
+      5,                        // type: int8
+      87, 0,                    // keyword: drift
+      253,                      // int8: -3
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      2, 0,                     // length: 2 bytes
     ]));
   });
 });

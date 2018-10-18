@@ -1,6 +1,6 @@
 {
   "name": "keyword_dict",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "map": {
     "abs": 1,
     "sqrt": 2,
@@ -85,6 +85,9 @@
     "ceiling": 81,
     "asin": 82,
     "acos": 83,
-    "atan": 84
+    "atan": 84,
+    "calibration": 85,
+    "scale": 86,
+    "drift": 87
   }
 }
