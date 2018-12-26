@@ -78,12 +78,32 @@ const compactify = (obj, fvlmap) => {
   }, {});
 };
 
-const compactify_calibration = (calibration, port_settings) => {
+const compactify_port_parameters = (port_parameters, port_settings) => {
   return Object.keys(port_settings).reduce((acc, port) => {
-    if (calibration[port] &&
-        calibration[port][port_settings[port]] &&
-        typeof calibration[port][port_settings[port]] === 'object')
-      acc[port] = calibration[port][port_settings[port]];
+    /*
+     * Convert from:
+     *  "port-settings": { "V1": "servo-motor" }, ...
+     *  "port-parameters": {
+     *    "V1": {
+     *      "servo-motor": {
+     *        "param1": ...
+     *      },
+     *      "dc-motor": {
+     *        "param2": ...
+     *      }
+     *    }
+     *  }
+     * ... to:
+     *  "port-parameters": {
+     *    "V1": {
+     *      "param1": ...
+     *    }
+     *  }
+     */
+    if (port_parameters[port] &&
+        port_parameters[port][port_settings[port]] &&
+        typeof port_parameters[port][port_settings[port]] === 'object')
+      acc[port] = port_parameters[port][port_settings[port]];
     return acc;
   }, {});
 };
@@ -100,11 +120,11 @@ const compactify_toplevel = (script) => {
     'list',
   ].includes(x.name));
   const idx = { function: 0, variable: 0, list: 0 };
-  const port_settings = script['port-settings'] || {};
-  const calibration = script.calibration || {};
+  const pss = script['port-settings'] || {};
+  const pps = script['port-parameters'] || {};
   return {
-    'port-settings': port_settings,
-    calibration: compactify_calibration(calibration, port_settings),
+    'port-settings': pss,
+    'port-parameters': compactify_port_parameters(pps, pss),
     scripts: compactify(scripts, scripts.reduce((acc, x) => {
       if (environ_p(x.name))
         acc[x.name][x[x.name]] = idx[x.name]++;
