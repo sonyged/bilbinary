@@ -1,6 +1,6 @@
 {
   "name": "keyword_dict",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "map": {
     "abs": 1,
     "sqrt": 2,
@@ -88,6 +88,7 @@
     "atan": 84,
     "calibration": 85,
     "scale": 86,
-    "drift": 87
+    "drift": 87,
+    "port-parameters": 88
   }
 }
