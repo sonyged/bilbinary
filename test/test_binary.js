@@ -186,9 +186,9 @@ describe('translate function', function() {
       32, 0,                    // keyword: 'port-settings'
       2, 0,                     // length: 2 bytes
 
-      // calibration: {}
+      // port-parameters: {}
       3,                        // type: object
-      85, 0,                    // keyword: 'calibration'
+      88, 0,                    // keyword: 'port-parameters'
       2, 0,                     // length: 2 bytes
 
       // scripts: [ ...
@@ -263,12 +263,12 @@ describe('translate function', function() {
   });
 });
 
-describe('translate no calibration', function() {
+describe('translate no port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': {},
     scripts: []});
 
-  it('should translate no calibration', function() {
+  it('should translate no port-parameters', function() {
     assert.deepEqual(trans.translate(), new Buffer([
       17, 0,                    // length: 17 bytes
 
@@ -277,9 +277,9 @@ describe('translate no calibration', function() {
       32, 0,                    // keyword: 'port-settings'
       2, 0,                     // length: 2 bytes
 
-      // calibration: {}
+      // 'port-parameters': {}
       3,                        // type: object
-      85, 0,                    // keyword: 'calibration'
+      88, 0,                    // keyword: 'port-parameters'
       2, 0,                     // length: 2 bytes
 
       // scripts: [ ...
@@ -290,13 +290,13 @@ describe('translate no calibration', function() {
   });
 });
 
-describe('translate empty calibration', function() {
+describe('translate empty port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': { V0: 'dc-motor' },
-    calibration: {},
+    'port-parameters': {},
     scripts: []});
 
-  it('should translate empty calibration', function() {
+  it('should translate empty port-parameters', function() {
     assert.deepEqual(trans.translate(), new Buffer([
       22, 0,                    // length: 22 bytes
 
@@ -309,9 +309,9 @@ describe('translate empty calibration', function() {
       46, 0,                    // keyword: V0
       72, 0,                    // keyword: dc-motor
 
-      // calibration: {}
+      // 'port-parameters': {}
       3,                        // type: object
-      85, 0,                    // keyword: 'calibration'
+      88, 0,                    // keyword: 'port-parameters'
       2, 0,                     // length: 2 bytes
 
       // scripts: [ ...
@@ -322,15 +322,15 @@ describe('translate empty calibration', function() {
   });
 });
 
-describe('translate nonexistent calibration', function() {
+describe('translate nonexistent port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': { V0: 'dc-motor' },
-    calibration: {
+    'port-parameters': {
       V2: { 'servo-motor': { drift: -3.0 } }
     },
     scripts: []});
 
-  it('should translate nonexistent calibration', function() {
+  it('should translate nonexistent port-parameters', function() {
     assert.deepEqual(trans.translate(), new Buffer([
       22, 0,                    // length: 22 bytes
 
@@ -343,9 +343,9 @@ describe('translate nonexistent calibration', function() {
       46, 0,                    // keyword: V0
       72, 0,                    // keyword: dc-motor
 
-      // calibration: {}
+      // 'port-parameters': {}
       3,                        // type: object
-      85, 0,                    // keyword: 'calibration'
+      88, 0,                    // keyword: 'port-parameters'
       2, 0,                     // length: 2 bytes
 
       // scripts: [ ...
@@ -356,13 +356,13 @@ describe('translate nonexistent calibration', function() {
   });
 });
 
-describe('translate existent calibration', function() {
+describe('translate existent port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': {
       V0: 'dc-motor',
       V6: 'servo-motor'
     },
-    calibration: {
+    'port-parameters': {
       V0: { 'dc-motor': { scale: 0.8 } },
       V2: { 'servo-motor': { drift: 3.0 } },
       V6: {
@@ -372,7 +372,7 @@ describe('translate existent calibration', function() {
     },
     scripts: []});
 
-  it('should translate nonexistent calibration', function() {
+  it('should translate nonexistent port-parameters', function() {
     assert.deepEqual(trans.translate(), new Buffer([
       48, 0,                    // length: 48 bytes
 
@@ -389,9 +389,9 @@ describe('translate existent calibration', function() {
       52, 0,                    // keyword: V6
       73, 0,                    // keyword: servo-motor
 
-      // calibration: {}
+      // 'port-parameters': {}
       3,                        // type: object
-      85, 0,                    // keyword: 'calibration'
+      88, 0,                    // keyword: 'port-parameters'
       23, 0,                    // length: 2 bytes
 
       3,                        // type: object
