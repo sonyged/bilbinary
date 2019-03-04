@@ -52,12 +52,67 @@ const environ_accessor_p = (blk) => [
   'list-insert',
 ].includes(blk.name);
 
+const variable_accessor_p = blk => [
+  'variable-ref',
+  'set-variable-to',
+  'change-variable-by',
+].includes(blk.name);
+
 const string_key_p = (key) => [
   'name',
   'port',
   'mode',
   'direction',
 ].includes(key);
+
+const compactify_args = (obj, fvlmap) => {
+  if (obj instanceof Array)
+    return obj.map(x => compactify_args(x, fvlmap));
+  if (immediate_p(obj))
+    return obj;
+  if (obj instanceof Object && obj.name === 'function') {
+    const map = fvlmap.args[obj.function];
+    return Object.keys(obj).reduce((acc, x) => {
+      acc[x] = obj[x];
+      if (x === 'args') {
+        if (true)
+          acc[x] = (obj[x] || []).length;
+        else 
+          acc[x] = (obj[x] || []).map(arg => {
+            return Object.keys(arg).reduce((acc, x) => {
+              acc[x] = arg[x];
+              if (x === 'variable')
+                acc[x] = map[arg[x]];
+              return acc;
+            }, {});
+          });
+      }
+      if (x === 'blocks') {
+        const rec = (obj) => {
+          if (obj instanceof Array)
+            return obj.map(x => rec(x));
+          if (immediate_p(obj))
+            return obj;
+          return Object.keys(obj).reduce((acc, key) => {
+            const v = obj[key];
+            if (variable_accessor_p(obj) &&
+                key === 'variable' &&
+                typeof v === 'string' &&
+                typeof map[v] === 'number') {
+              acc[key] = map[v];
+            } else {
+              acc[key] = rec(v);
+            }
+            return acc;
+          }, {});
+        };
+        acc[x] = rec(obj[x]);
+      }
+      return acc;
+    }, {});
+  }
+  return obj;
+};
 
 const compactify = (obj, fvlmap) => {
   if (obj instanceof Array)
@@ -66,8 +121,21 @@ const compactify = (obj, fvlmap) => {
     return obj;
   return Object.keys(obj).reduce((acc, key) => {
     const v = obj[key];
-    if ((environ_p(obj.name) || environ_accessor_p(obj))
-        && environ_p(key)) {
+    if (obj.name === 'call-function' && key === 'args') {
+      const map = fvlmap.args[obj.function];
+      acc[key] = v.map(x => {
+        return Object.keys(x).reduce((acc, key) => {
+          if (key === 'variable') {
+            acc[key] = map[x[key]];
+          } else {
+            acc[key] = compactify(x[key], fvlmap);
+          }
+          return acc;
+        }, {});
+      });
+    } else if ((environ_p(obj.name) || environ_accessor_p(obj)) &&
+        environ_p(key) &&
+        typeof v === 'string') {
       if (typeof fvlmap[key][v] !== 'number')
         throw new Error(`Unknown ${key}: ${v}`);
       acc[key] = fvlmap[key][v];
@@ -108,9 +176,31 @@ const compactify_port_parameters = (port_parameters, port_settings) => {
   }, {});
 };
 
+const build_fvlmap = (scripts) => {
+  const idx = { args: {}, function: 0, variable: 0, list: 0 };
+  return scripts.reduce((acc, x) => {
+    if (environ_p(x.name))
+      acc[x.name][x[x.name]] = idx[x.name]++;
+    if (x.name == 'function') {
+      idx.args[x.name] = -1;
+      acc.args[x[x.name]] = (x.args || []).reduce((acc, a) => {
+        acc[a.variable] = idx.args[x.name]--;
+        return acc;
+      }, {});
+    }
+    return acc;
+  }, { args: {}, function: {}, variable: {}, list: {} })
+};
+
+const compactify_scripts = (scripts, fvlmap) => {
+  scripts = compactify_args(scripts, fvlmap);
+  return compactify(scripts, fvlmap);
+};
+
 const compactify_toplevel = (script) => {
   if (!script.scripts)
-    return compactify(script, { function: {}, variable: {}, list: {} });
+    return compactify_scripts(script, {
+      args: {}, function: {}, variable: {}, list: {} });
 
   // exclude 'fragment', etc.
   const scripts = script.scripts.filter(x => [
@@ -119,17 +209,12 @@ const compactify_toplevel = (script) => {
     'variable',
     'list',
   ].includes(x.name));
-  const idx = { function: 0, variable: 0, list: 0 };
   const pss = script['port-settings'] || {};
   const pps = script['port-parameters'] || {};
   return {
     'port-settings': pss,
     'port-parameters': compactify_port_parameters(pps, pss),
-    scripts: compactify(scripts, scripts.reduce((acc, x) => {
-      if (environ_p(x.name))
-        acc[x.name][x[x.name]] = idx[x.name]++;
-      return acc;
-    }, { function: {}, variable: {}, list: {} }))
+    scripts: compactify_scripts(scripts, build_fvlmap(scripts))
   };
 };
 
