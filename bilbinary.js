@@ -226,7 +226,7 @@ const pack_keyvalue = (key, obj) => {
     return pack_array(key, obj);
   if (obj instanceof Object)
     return pack_object(BT_OBJECT, key, obj, false);
-  throw new Error(`Unsupported value: ${obj} for key ${$key}`);
+  throw new Error(`Unsupported value: ${obj} for key ${key}`);
 };
 
 const unpack_elist = (b, offset, obj, unpack) => {
