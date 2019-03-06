@@ -154,6 +154,7 @@ describe('compacitify scripts', function() {
   it('should compacitify scripts', function() {
     const compactify = rewire('../compactify.js');
     const compactify_scripts = compactify.__get__('compactify_scripts');
+    const compactify_toplevel = compactify.__get__('compactify_toplevel');
 
     assert.deepEqual(compactify_scripts({
     }, { "args": {}, "function": {}, "list": {}, "variable": {} }), {});
@@ -250,5 +251,139 @@ describe('compacitify scripts', function() {
                 x: { name: 'variable-ref', variable: 0 },
                 y: { name: 'variable-ref', variable: 1 } }]},
         ] }]);
+
+    assert.deepEqual(compactify_toplevel({
+      scripts: [
+        { name: 'when-green-flag-clicked',
+          blocks: [
+            { name: 'wait', secs: {
+              name: 'call-function', function: 'f0',
+              args: [
+                { variable: 'p',
+                  value: { name: 'multiply', x: 2, y: 3 }},
+                { variable: 'q',
+                  value: { name: 'divide', x: 5, y: 2 }}
+              ] }},
+            { name: 'wait', secs: {
+              name: 'call-function', function: 'f1',
+              args: [
+                { variable: 'y',
+                  value: 8},
+                { variable: 'x',
+                  value: {
+                    name: 'call-function', function: 'f0',
+                    args: [
+                      { variable: 'p',
+                        value: { name: 'multiply', x: 3, y: 4 }},
+                      { variable: 'q',
+                        value: { name: 'divide', x: 5, y: 6 }}
+                    ] }}
+              ] }},
+          ]
+        },
+        { name: 'function', function: 'f0',
+          args: [ { variable: 'p' }, { variable: 'q' } ],
+          blocks: [ { name: 'plus', x: 1, y: 2 } ] },
+        { name: 'function', function: 'f1',
+          args: [ { variable: 'x' }, { variable: 'y' } ],
+          blocks: [ { name: 'minus', x: 1, y: 2 } ] },
+      ]}), {
+        "port-parameters": {},
+        "port-settings": {},
+        "scripts": [
+          {
+            "blocks": [
+              {
+                "name": "wait",
+                "secs": {
+                  "args": [
+                    {
+                      "value": {
+                        "name": "multiply",
+                        "x": 2,
+                        "y": 3,
+                      },
+                      "variable": -1
+                    },
+                    {
+                      "value": {
+                        "name": "divide",
+                        "x": 5,
+                        "y": 2,
+                      },
+                      "variable": -2
+                    }
+                  ],
+                  "function": 0,
+                  "name": "call-function"
+                }
+              },
+              {
+                "name": "wait",
+                "secs": {
+                  "args": [
+                    {
+                      "value": 8,
+                      "variable": -2
+                    },
+                    {
+                      "value": {
+                        "args": [
+                          {
+                            "value": {
+                              "name": "multiply",
+                              "x": 3,
+                              "y": 4
+                            },
+                            "variable": -1
+                          },
+                          {
+                            "value": {
+                              "name": "divide",
+                              "x": 5,
+                              "y": 6
+                            },
+                            "variable": -2
+                          }
+                        ],
+                        "function": 0,
+                        "name": "call-function"
+                      },
+                      "variable": -1
+                    }
+                  ],
+                  "function": 1,
+                  "name": "call-function"
+                }
+              }
+            ],
+            "name": "when-green-flag-clicked"
+          },
+          {
+            "args": 2,
+            "blocks": [
+              {
+                "name": "plus",
+                "x": 1,
+                "y": 2
+              }
+            ],
+            "function": 0,
+            "name": "function"
+          },
+          {
+            "args": 2,
+            "blocks": [
+              {
+                "name": "minus",
+                "x": 1,
+                "y": 2
+              }
+            ],
+            "function": 1,
+            "name": "function"
+          }
+        ]
+      });
   });
 });

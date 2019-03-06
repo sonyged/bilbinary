@@ -263,6 +263,366 @@ describe('translate function', function() {
   });
 });
 
+describe('translate function with arguments', function() {
+  const trans = bilbinary.translator({
+    'port-settings': {},
+    scripts: [
+    { name: 'when-green-flag-clicked',
+      blocks: [
+        { name: 'wait', secs: {
+          name: 'call-function', function: 'f0',
+          args: [
+            { variable: 'p',
+              value: { name: 'multiply', x: 2, y: 3 }},
+            { variable: 'q',
+              value: { name: 'divide', x: 5, y: 2 }}
+          ] }},
+        { name: 'wait', secs: {
+          name: 'call-function', function: 'f1',
+          args: [
+            { variable: 'y', value: 8 },
+            { variable: 'x',
+              value: {
+                name: 'call-function', function: 'f0',
+                args: [
+                  { variable: 'p',
+                    value: { name: 'multiply', x: 3, y: 4 }},
+                  { variable: 'q',
+                    value: { name: 'divide', x: 5, y: 6 }}
+                ] }}
+          ] }},
+      ]
+    },
+    { name: 'function', function: 'f0',
+      args: [ { variable: 'p' }, { variable: 'q' } ],
+      blocks: [ { name: 'plus', x: 1, y: 2 } ] },
+    { name: 'function', function: 'f1',
+      args: [ { variable: 'x' }, { variable: 'y' } ],
+      blocks: [ { name: 'minus', x: 1, y: 2 } ] },
+  ]});
+
+  it('should be function in binary format', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      // begin 295 bytes
+      39, 1,                    // length: 295 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      // - begin 2 bytes
+      2, 0,                     // length: 2 bytes
+      // - end 2 bytes
+
+      // port-parameters: {}
+      3,                        // type: object
+      88, 0,                    // keyword: 'port-parameters'
+      // - begin 2 bytes
+      2, 0,                     // length: 2 bytes
+      // - end 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      24, 1,                    // length: 280 bytes
+
+      // { name: 'when-green-flag-clicked', ...
+      3,                        // type: object
+      // - begin 203 bytes
+      203, 0,                   // length: 203 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      1, 0,                     // insn: 'when-green-flag-clicked'
+
+      // blocks: [ ...
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      // -- begin 193 bytes
+      193, 0,                   // length: 193 bytes
+
+      // { name: 'wait', ... }
+      3,                        // type: object
+      // --- begin 76 bytes
+      76, 0,                    // length: 76 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      // ---- begin 66 bytes
+      66, 0,                    // length: 66 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      43, 0,                    // insn: 'call-function'
+
+      5,                        // type: int8
+      10, 0,                    // keywrod: 'function'
+      0,                        // int8: 0
+
+      4,                        // type: array
+      89, 0,                    // keyword: 'args'
+      // ----- begin 52 bytes
+      52, 0,                    // length: 52 bytes
+
+      3,                        // type: object
+      // ------ begin 24 bytes
+      24, 0,                    // length: 24
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      255,                      // -----1
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // ------- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      12, 0,                    // insn: 'multiply'
+
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      2,                        // int8: 2
+
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      3,                        // int8: 3
+      // ------- end 15 bytes
+      // ------ end 24 bytes
+
+      3,                        // type: object
+      // ------ begin 24 bytes
+      24, 0,                    // length: 24 bytes
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      254,                      // int8: -2
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // ------- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      13, 0,                    // insn: 'divide'
+
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      5,                        // int8: 5
+
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+      // ------- end 15 bytes
+      // ------ end 24 bytes
+      // ----- end 52 bytes
+      // ---- end 66 bytes
+      // --- end 76 bytes
+
+      // { name: 'wait', ...
+      3,                        // type: object
+      113, 0,                   // length: 113 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      // --- begin 103 bytes
+      103, 0,                   // length: 103 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      43, 0,                    // insn: 'call-function'
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      1,                        // int8: 1
+
+      // args: [ ...
+      4,                        // type: array
+      89, 0,                    // keyword: 'args'
+      // ---- begin 89 bytes
+      89, 0,                    // length: 89 bytes
+
+      // { variable: -2, value: 8 }
+      3,                        // type: object
+      // ----- begin 10 bytes
+      10, 0,                    // length: 10 bytes
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      254,                      // int8: -2
+      5,                        // type: int8
+      19, 0,                    // keyword: 'value'
+      8,                        // int8: 8
+      // ----- end 10 bytes
+
+      // { variable: -1, value: 8 }
+      3,                        // type: object
+      // ----- begin 75 bytes
+      75, 0,                    // length: 75 bytes
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      255,                      // int: -1
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // ------ begin 66 bytes
+      66, 0,                    // length: 66 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      43, 0,                    // insn: 'call-function'
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      0,                        // int8: 0
+
+      // { args: ...
+      4,                        // type: array
+      89, 0,                    // keyword: 'args'
+      // ------- begin 52 bytes
+      52, 0,                    // length: 52 bytes
+
+      3,                        // type: object
+      // -------- begin 24 bytes
+      24, 0,                    // length: 24 bytes
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      255,                      // int8: -1
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // --------- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      12, 0,                    // insn: 'multiply'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      3,                        // int8: 3
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      4,                        // int8: 4
+      // --------- end 15 bytes
+      // -------- end 24 bytes
+
+      3,                        // type: object
+      // -------- begin 24 bytes
+      24, 0,                    // length: 24 bytes
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      254,                      // int8: -2
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // --------- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      13, 0,                    // insn: 'divide'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      5,                        // int8: 5
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      6,                        // int8: 6
+      // --------- end 15 bytes
+      // -------- end 24 bytes
+      // ------- end 52 bytes
+      // ------ end 66 bytes
+      // ----- end 75 bytes
+      // ---- end 89 bytes
+      // --- end 103 bytes
+      // -- end 193 bytes
+      // - end 203 bytes
+
+      3,                        // type: object
+      // - begin 36 bytes
+      36, 0,                    // length: 36 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      42, 0,                    // insn: 'function'
+
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      0,                        // int8: 0
+
+      5,                        // type: int8
+      89, 0,                    // keyword: 'args'
+      2,                        // int8: 2
+
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      // -- begin 18 bytes
+      18, 0,                    // length: 18 bytes
+
+      3,                        // type: object
+      // --- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      10, 0,                    // insn: 'plus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      1,                        // int8: 1
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+      // --- end 15 bytes
+      // -- end 18 bytes
+      // - end 36 bytes
+
+      3,                        // type: object
+      // - begin 36 bytes
+      36, 0,                    // length: 36 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      42, 0,                    // insn: 'function'
+
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      1,                        // int8: 1
+
+      5,                        // type: int8
+      89, 0,                    // keyword: 'args'
+      2,                        // int8: 2
+
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      // -- begin 18 bytes
+      18, 0,                    // length: 18 bytes
+
+      3,                        // type: object
+      // --- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      11, 0,                    // insn: 'minus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      1,                        // int8: 1
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+      // --- end 15 bytes
+      // -- end 18 bytes
+      // - end 36 bytes
+      // end 295 bytes
+    ]));
+  });
+});
+
 describe('translate no port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': {},
