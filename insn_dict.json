@@ -1,6 +1,6 @@
 {
   "name": "insn_dict",
-  "version": "1.0.38",
+  "version": "1.0.39",
   "map": {
     "when-green-flag-clicked": 1,
     "repeat": 2,
@@ -57,6 +57,9 @@
     "list-delete": 53,
     "list-replace": 54,
     "list-insert": 55,
-    "sound-sensor-value": 56
+    "sound-sensor-value": 56,
+    "return": 57,
+    "break": 58,
+    "continue": 59
   }
 }
