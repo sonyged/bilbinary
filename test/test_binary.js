@@ -263,6 +263,179 @@ describe('translate function', function() {
   });
 });
 
+describe('translate function with local variables', function() {
+  const trans = bilbinary.translator({
+    'port-settings': {},
+    scripts: [
+      {
+        name: 'function',
+        function: 'f',
+        locals: [
+          { variable: 'p', value: { name: 'plus', x: 1, y: 2 } },
+          { variable: 'q', value: { name: 'minus', x: 1, y: 2 } } ],
+        blocks: [
+          { name: 'wait',
+            secs: {
+              name: 'divide',
+              x: { name: 'variable-ref', variable: 'q' },
+              y: { name: 'variable-ref', variable: 'p' } }},
+        ]
+      },
+      {
+        name: 'when-green-flag-clicked', blocks: [
+          { name: 'call-function', function: 'f' },
+          { name: 'wait', secs: {
+            name: 'plus', x: 200, y: -50 }
+          }
+        ]
+      }
+    ]});
+
+  it('should be function in binary format', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      187, 0,                   // length: 187 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      2, 0,                     // length: 2 bytes
+
+      // port-parameters: {}
+      3,                        // type: object
+      88, 0,                    // keyword: 'port-parameters'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      172, 0,                   // length: 172 bytes
+
+      // { name: 'function', ... }
+      3,                        // type: object
+      117, 0,                   // length: 117 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      42, 0,                    // insn: 'function'
+      5,                        // type: int8
+      10, 0,                    // keywrod: 'function'
+      0,                        // int8: 0
+      4,                        // type: array
+      90, 0,                    // keyword: 'locals'
+      52, 0,                    // length: 52 bytes
+      3,                        // type: object
+      24, 0,                    // length: 24 bytes
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      255,                      // int8: -1
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      15, 0,                    // length: 15 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      10, 0,                    // insn: 'plus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      1,                        // int8: 1
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+      3,                        // type: object
+      24, 0,                    // length: 24 bytes
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      254,                      // int8: -2
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      15, 0,                    // length: 15 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      11, 0,                    // insn: 'minus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      1,                        // int8: 1
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      48, 0,                    // length: 48 bytes
+      3,                        // type: object
+      45, 0,                    // length: 45 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      35, 0,                    // length: 35 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      13, 0,                    // insn: 'divide'
+      3,                        // type: object
+      34, 0,                    // keyword: 'x'
+      11, 0,                    // length: 11 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      45, 0,                    // insn: 'variable-ref'
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      254,                      // int8: -2
+      3,                        // type: object
+      35, 0,                    // keyword: 'y'
+      11, 0,                    // length: 11 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      45, 0,                    // insn: 'variable-ref'
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      255,                      // int8: -1
+
+      // { name: 'when-green-flag-clicked', ... }
+      3,                        // type: object
+      51, 0,                    // length: 51 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      1, 0,                     // insn: 'when-green-flag-clicked'
+
+      // blocks: [ ...
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      41, 0,                    // length: 41 bytes
+
+      // { name: 'call-function', ... }
+      3,                        // type: object
+      11, 0,                    // length: 11 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      43, 0,                    // insn: 'call-function'
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      0,                        // int8: 0
+
+      // { name: 'wait', ... }
+      3,                        // type: object
+      26, 0,                    // length: 26 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      // secs: ...
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      16, 0,                    // length: 16 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      10, 0,                    // insn: 'plus'
+      6,                        // type: int16
+      34, 0,                    // keyword: 'x'
+      200, 0,                   // int16: 200
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      206,                      // int8: -50
+    ]));
+  });
+});
+
 describe('translate function with arguments', function() {
   const trans = bilbinary.translator({
     'port-settings': {},
