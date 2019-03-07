@@ -70,8 +70,8 @@ const compactify_args = (obj, fvlmap) => {
     return obj.map(x => compactify_args(x, fvlmap));
   if (immediate_p(obj))
     return obj;
-  if (obj instanceof Object && obj.name === 'function') {
-    const map = fvlmap.locals[obj.function];
+  const resolve_locals = (tag) => {
+    const map = fvlmap.locals[tag];
     return Object.keys(obj).reduce((acc, x) => {
       const replace_variable = x => (obj[x] || []).map(arg => {
         return Object.keys(arg).reduce((acc, x) => {
@@ -113,6 +113,12 @@ const compactify_args = (obj, fvlmap) => {
       }
       return acc;
     }, {});
+  };
+  if (obj instanceof Object) {
+    if (obj.name === 'function')
+      return resolve_locals(obj.function);
+    if (obj.name === 'when-green-flag-clicked')
+      return resolve_locals(null);
   }
   return obj;
 };
@@ -184,21 +190,25 @@ const build_fvlmap = (scripts) => {
   return scripts.reduce((acc, x) => {
     if (environ_p(x.name))
       acc[x.name][x[x.name]] = idx[x.name]++;
-    if (x.name === 'function') {
+    const map_locals = (tag, keys) => {
       /*
        * The 'args' and 'locals' shares index value and it is local to
        * function.
        */
       idx.locals = -1;
-      [ 'args', 'locals' ].forEach(key => {
-        acc.locals[x[x.name]] = (x[key] || []).reduce((acc, a) => {
+      keys.forEach(key => {
+        acc.locals[tag] = (x[key] || []).reduce((acc, a) => {
           if (acc[a.variable])
             throw new Error(`${key} "${a.variable}" is already defined`);
           acc[a.variable] = idx.locals--;
           return acc;
-        }, acc.locals[x[x.name]] || {});
+        }, acc.locals[tag] || {});
       });
-    }
+    };
+    if (x.name === 'function')
+      map_locals(x[x.name], [ 'args', 'locals' ]);
+    if (x.name === 'when-green-flag-clicked')
+      map_locals(null, [ 'locals' ]);
     return acc;
   }, { locals: {}, function: {}, variable: {}, list: {} })
 };
