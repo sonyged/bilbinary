@@ -246,7 +246,10 @@ describe('compacitify function', function() {
           ],
           locals: [
             { variable: 'p', value: { name: 'plus', x: 1, y: 2 } },
-            { variable: 'r', value: { name: 'minus', x: 1, y: 2 } } ],
+            { variable: 'r', value: {
+              name: 'minus',
+              x: { name: 'variable-ref', variable: 'q' },
+              y: 2 } } ],
           blocks: [
             { name: 'wait',
               secs: {
@@ -280,7 +283,10 @@ describe('compacitify function', function() {
         args: 1,
         locals: [
           { variable: -2, value: { name: 'plus', x: 1, y: 2 } },
-          { variable: -3, value: { name: 'minus', x: 1, y: 2 } } ],
+          { variable: -3, value: {
+            name: 'minus',
+            x: { name: 'variable-ref', variable: -1 },
+            y: 2 } } ],
         blocks: [
           { name: 'wait',
             secs: {
