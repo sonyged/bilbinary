@@ -73,30 +73,23 @@ const compactify_args = (obj, fvlmap) => {
   if (obj instanceof Object && obj.name === 'function') {
     const map = fvlmap.locals[obj.function];
     return Object.keys(obj).reduce((acc, x) => {
+      const replace_variable = x => (obj[x] || []).map(arg => {
+        return Object.keys(arg).reduce((acc, x) => {
+          acc[x] = arg[x];
+          if (x === 'variable')
+            acc[x] = map[arg[x]];
+          return acc;
+        }, {});
+      });
       acc[x] = obj[x];
       if (x === 'args') {
         if (true)
           acc[x] = (obj[x] || []).length;
         else 
-          acc[x] = (obj[x] || []).map(arg => {
-            return Object.keys(arg).reduce((acc, x) => {
-              acc[x] = arg[x];
-              if (x === 'variable')
-                acc[x] = map[arg[x]];
-              return acc;
-            }, {});
-          });
+          acc[x] = replace_variable(x);
       }
-      if (x === 'locals') {
-        acc[x] = (obj[x] || []).map(arg => {
-          return Object.keys(arg).reduce((acc, x) => {
-            acc[x] = arg[x];
-            if (x === 'variable')
-              acc[x] = map[arg[x]];
-            return acc;
-          }, {});
-        });
-      }
+      if (x === 'locals')
+        acc[x] = replace_variable(x);
       if (x === 'blocks') {
         const rec = (obj) => {
           if (obj instanceof Array)
