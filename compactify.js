@@ -71,7 +71,7 @@ const compactify_args = (obj, fvlmap) => {
   if (immediate_p(obj))
     return obj;
   if (obj instanceof Object && obj.name === 'function') {
-    const map = fvlmap.args[obj.function];
+    const map = fvlmap.locals[obj.function];
     return Object.keys(obj).reduce((acc, x) => {
       acc[x] = obj[x];
       if (x === 'args') {
@@ -86,6 +86,16 @@ const compactify_args = (obj, fvlmap) => {
               return acc;
             }, {});
           });
+      }
+      if (x === 'locals') {
+        acc[x] = (obj[x] || []).map(arg => {
+          return Object.keys(arg).reduce((acc, x) => {
+            acc[x] = arg[x];
+            if (x === 'variable')
+              acc[x] = map[arg[x]];
+            return acc;
+          }, {});
+        });
       }
       if (x === 'blocks') {
         const rec = (obj) => {
@@ -122,7 +132,7 @@ const compactify = (obj, fvlmap) => {
   return Object.keys(obj).reduce((acc, key) => {
     const v = obj[key];
     if (obj.name === 'call-function' && key === 'args') {
-      const map = fvlmap.args[obj.function];
+      const map = fvlmap.locals[obj.function];
       acc[key] = v.map(x => {
         return Object.keys(x).reduce((acc, key) => {
           if (key === 'variable') {
@@ -177,19 +187,27 @@ const compactify_port_parameters = (port_parameters, port_settings) => {
 };
 
 const build_fvlmap = (scripts) => {
-  const idx = { args: {}, function: 0, variable: 0, list: 0 };
+  const idx = { locals: 0, function: 0, variable: 0, list: 0 };
   return scripts.reduce((acc, x) => {
     if (environ_p(x.name))
       acc[x.name][x[x.name]] = idx[x.name]++;
-    if (x.name == 'function') {
-      idx.args[x.name] = -1;
-      acc.args[x[x.name]] = (x.args || []).reduce((acc, a) => {
-        acc[a.variable] = idx.args[x.name]--;
-        return acc;
-      }, {});
+    if (x.name === 'function') {
+      /*
+       * The 'args' and 'locals' shares index value and it is local to
+       * function.
+       */
+      idx.locals = -1;
+      [ 'args', 'locals' ].forEach(key => {
+        acc.locals[x[x.name]] = (x[key] || []).reduce((acc, a) => {
+          if (acc[a.variable])
+            throw new Error(`${key} "${a.variable}" is already defined`);
+          acc[a.variable] = idx.locals--;
+          return acc;
+        }, acc.locals[x[x.name]] || {});
+      });
     }
     return acc;
-  }, { args: {}, function: {}, variable: {}, list: {} })
+  }, { locals: {}, function: {}, variable: {}, list: {} })
 };
 
 const compactify_scripts = (scripts, fvlmap) => {
@@ -200,7 +218,7 @@ const compactify_scripts = (scripts, fvlmap) => {
 const compactify_toplevel = (script) => {
   if (!script.scripts)
     return compactify_scripts(script, {
-      args: {}, function: {}, variable: {}, list: {} });
+      locals: {}, function: {}, variable: {}, list: {} });
 
   // exclude 'fragment', etc.
   const scripts = script.scripts.filter(x => [
