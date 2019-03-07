@@ -110,8 +110,8 @@ describe('build_fvlmap', function() {
   });
 });
 
-describe('compacitify function', function() {
-  it('should compacitify function arguments', function() {
+describe('compactify function', function() {
+  it('should compactify function arguments', function() {
     const compactify = rewire('../compactify.js');
     const compactify_args = compactify.__get__('compactify_args');
 
@@ -189,7 +189,7 @@ describe('compacitify function', function() {
         ] }]);
   });
 
-  it('should compacitify function with local variables', function() {
+  it('should compactify function with local variables', function() {
     const compactify = rewire('../compactify.js');
     const compactify_args = compactify.__get__('compactify_args');
 
@@ -297,8 +297,8 @@ describe('compacitify function', function() {
   });
 });
 
-describe('compacitify scripts', function() {
-  it('should compacitify scripts', function() {
+describe('compactify scripts', function() {
+  it('should compactify scripts', function() {
     const compactify = rewire('../compactify.js');
     const compactify_scripts = compactify.__get__('compactify_scripts');
     const compactify_toplevel = compactify.__get__('compactify_toplevel');
