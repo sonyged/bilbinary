@@ -88,27 +88,27 @@ const compactify_args = (obj, fvlmap) => {
         else 
           acc[x] = replace_variable(x);
       }
+      const rec = (obj) => {
+        if (obj instanceof Array)
+          return obj.map(x => rec(x));
+        if (immediate_p(obj))
+          return obj;
+        return Object.keys(obj).reduce((acc, key) => {
+          const v = obj[key];
+          if (variable_accessor_p(obj) &&
+              key === 'variable' &&
+              typeof v === 'string' &&
+              typeof map[v] === 'number') {
+            acc[key] = map[v];
+          } else {
+            acc[key] = rec(v);
+          }
+          return acc;
+        }, {});
+      };
       if (x === 'locals')
-        acc[x] = replace_variable(x);
+        acc[x] = rec(replace_variable(x));
       if (x === 'blocks') {
-        const rec = (obj) => {
-          if (obj instanceof Array)
-            return obj.map(x => rec(x));
-          if (immediate_p(obj))
-            return obj;
-          return Object.keys(obj).reduce((acc, key) => {
-            const v = obj[key];
-            if (variable_accessor_p(obj) &&
-                key === 'variable' &&
-                typeof v === 'string' &&
-                typeof map[v] === 'number') {
-              acc[key] = map[v];
-            } else {
-              acc[key] = rec(v);
-            }
-            return acc;
-          }, {});
-        };
         acc[x] = rec(obj[x]);
       }
       return acc;
