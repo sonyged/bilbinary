@@ -107,6 +107,23 @@ describe('build_fvlmap', function() {
       "function": { 'f1': 0, 'f2': 1 },
       "list": {},
       "variable": {} });
+
+    assert.deepEqual(build_fvlmap([
+      { name: 'when-green-flag-clicked',
+        locals: [ { variable: 'p', value: 0 }, { variable: 'q', value: 1 } ],
+        blocks: [] },
+      { name: 'function',
+        function: 'when-green-flag-clicked',
+        args: [ { variable: 'x' }, { variable: 'y' } ],
+        locals: [ { variable: 'u', value: 2 }, { variable: 'v', value: 3 } ],
+        blocks: [] }
+    ]), {
+      "locals": {
+        null: { "p": -1, "q": -2 },
+        'when-green-flag-clicked': { "x": -1, "y": -2, "u": -3, "v": -4 } },
+      "function": { 'when-green-flag-clicked': 0 },
+      "list": {},
+      "variable": {} });
   });
 });
 
@@ -292,6 +309,43 @@ describe('compactify function', function() {
             secs: {
               name: 'divide',
               x: { name: 'variable-ref', variable: -3 },
+              y: { name: 'variable-ref', variable: -1 } }},
+        ] }]);
+  });
+});
+
+describe('compactify when-green-flag-clicked', function() {
+  it('should compactify when-green-flag-clicked with locals', function() {
+    const compactify = rewire('../compactify.js');
+    const compactify_args = compactify.__get__('compactify_args');
+
+    assert.deepEqual(compactify_args(
+      [
+        { name: 'when-green-flag-clicked',
+          locals: [
+            { variable: 'p', value: { name: 'plus', x: 1, y: 2 } },
+            { variable: 'q', value: { name: 'minus', x: 1, y: 2 } } ],
+          blocks: [
+            { name: 'wait',
+              secs: {
+                name: 'divide',
+                x: { name: 'variable-ref', variable: 'q' },
+                y: { name: 'variable-ref', variable: 'p' } }},
+          ] }],
+      { "locals": { null: { "p": -1, "q": -2 } },
+        "function": {},
+        "list": {},
+        "variable": { 'p': 0, 'q': 1, 'x': 2, 'y': 3 } }
+    ), [
+      { name: 'when-green-flag-clicked',
+        locals: [
+          { variable: -1, value: { name: 'plus', x: 1, y: 2 } },
+          { variable: -2, value: { name: 'minus', x: 1, y: 2 } } ],
+        blocks: [
+          { name: 'wait',
+            secs: {
+              name: 'divide',
+              x: { name: 'variable-ref', variable: -2 },
               y: { name: 'variable-ref', variable: -1 } }},
         ] }]);
   });
