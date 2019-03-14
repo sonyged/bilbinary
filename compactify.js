@@ -31,7 +31,7 @@ const immediate_p = (x) => ['string', 'number', 'boolean'].includes(typeof x);
 /*
  * List of blocks consists for environment.
  */
-const environ_p = (x) => ['function', 'variable', 'list'].includes(x);
+const environ_p = (x) => ['function', 'variable', 'list', 'image'].includes(x);
 
 /*
  * List of blocks which access to environment.
@@ -50,6 +50,8 @@ const environ_accessor_p = (blk) => [
   'list-delete',
   'list-replace',
   'list-insert',
+
+  'led-matrix',
 ].includes(blk.name);
 
 const variable_accessor_p = blk => [
@@ -70,8 +72,8 @@ const compactify_args = (obj, fvlmap) => {
     return obj.map(x => compactify_args(x, fvlmap));
   if (immediate_p(obj))
     return obj;
-  const resolve_locals = (tag) => {
-    const map = fvlmap.locals[tag];
+  const resolve_locals = (locals, tag) => {
+    const map = locals[tag];
     return Object.keys(obj).reduce((acc, x) => {
       const replace_variable = x => (obj[x] || []).map(arg => {
         return Object.keys(arg).reduce((acc, x) => {
@@ -116,9 +118,9 @@ const compactify_args = (obj, fvlmap) => {
   };
   if (obj instanceof Object) {
     if (obj.name === 'function')
-      return resolve_locals(obj.function);
+      return resolve_locals(fvlmap.locals, obj.function);
     if (obj.name === 'when-green-flag-clicked')
-      return resolve_locals(null);
+      return resolve_locals(fvlmap[obj.name], 'locals');
   }
   return obj;
 };
@@ -186,31 +188,37 @@ const compactify_port_parameters = (port_parameters, port_settings) => {
 };
 
 const build_fvlmap = (scripts) => {
-  const idx = { locals: 0, function: 0, variable: 0, list: 0 };
+  const idx = { locals: 0, function: 0, variable: 0, list: 0, image: 0 };
   return scripts.reduce((acc, x) => {
     if (environ_p(x.name))
       acc[x.name][x[x.name]] = idx[x.name]++;
-    const map_locals = (tag, keys) => {
+    const map_locals = (locals, tag, keys) => {
       /*
        * The 'args' and 'locals' shares index value and it is local to
        * function.
        */
       idx.locals = -1;
       keys.forEach(key => {
-        acc.locals[tag] = (x[key] || []).reduce((acc, a) => {
+        locals[tag] = (x[key] || []).reduce((acc, a) => {
           if (acc[a.variable])
             throw new Error(`${key} "${a.variable}" is already defined`);
           acc[a.variable] = idx.locals--;
           return acc;
-        }, acc.locals[tag] || {});
+        }, locals[tag] || {});
       });
     };
     if (x.name === 'function')
-      map_locals(x[x.name], [ 'args', 'locals' ]);
+      map_locals(acc.locals, x[x.name], [ 'args', 'locals' ]);
     if (x.name === 'when-green-flag-clicked')
-      map_locals(null, [ 'locals' ]);
+      map_locals(acc[x.name], 'locals', [ 'locals' ]);
     return acc;
-  }, { locals: {}, function: {}, variable: {}, list: {} })
+  }, {
+    'when-green-flag-clicked': {},
+    locals: {},
+    function: {},
+    variable: {},
+    list: {},
+    image: {} })
 };
 
 const compactify_scripts = (scripts, fvlmap) => {
@@ -229,6 +237,7 @@ const compactify_toplevel = (script) => {
     'function',
     'variable',
     'list',
+    'image',
   ].includes(x.name));
   const pss = script['port-settings'] || {};
   const pps = script['port-parameters'] || {};
