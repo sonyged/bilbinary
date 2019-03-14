@@ -925,7 +925,7 @@ describe('translate existent port-parameters', function() {
       // 'port-parameters': {}
       3,                        // type: object
       88, 0,                    // keyword: 'port-parameters'
-      23, 0,                    // length: 2 bytes
+      23, 0,                    // length: 23 bytes
 
       3,                        // type: object
       46, 0,                    // keyword: V0
@@ -948,3 +948,109 @@ describe('translate existent port-parameters', function() {
     ]));
   });
 });
+
+describe('translate led-matrix', function() {
+  const trans = bilbinary.translator({
+    scripts: [
+      {
+        "name": "when-green-flag-clicked",
+        "blocks": [
+          { name: 'led-matrix',
+            image: 0,
+            port: 'V2',
+            x: 2,
+            y: 0,
+            brightness: 0.3
+          }
+        ]
+      },
+      { name: 'image',
+        image: 'image-1',
+        width: 3,
+        height: 5,
+        format: 'grb',
+        pixels: [
+          100, 0, 0
+        ] }
+    ]});
+
+  it('should translate nonexistent port-parameters', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      98, 0,                    // length: 98 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      2, 0,                     // length: 2 bytes
+
+      // 'port-parameters': {}
+      3,                        // type: object
+      88, 0,                    // keyword: 'port-parameters'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      83, 0,                    // length: 83 bytes
+
+      3,                        // type: object
+      44, 0,                    // length: 44 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      1, 0,                     // insn: 'when-green-flag-clicked'
+
+      // blocks: [ ...
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      34, 0,                    // length: 34 bytes
+
+      3,                        // type: object
+      31, 0,                    // length: 31 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      61, 0,                    // insn: 'led-matrix'
+      5,                        // type: int8
+      91, 0,                    // keyword: 'image'
+      0,                        // int8: 0
+      2,                        // type: keyword
+      14, 0,                    // keyword: 'port'
+      48, 0,                    // keyword: 'V2'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      2,                        // int8: 2
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      0,                        // int8: 0
+      1,                        // type: float
+      94, 0,                    // keyword: 'brightness'
+      154, 153, 153, 62,        // float: 0.3
+      3,                        // type: object
+      35, 0,                    // keyword: 'y'
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      60, 0,                    // insn: 'image'
+      5,                        // type: int8
+      91, 0,                    // keyword: 'image'
+      0,                        // int8: 0
+      5,                        // type: int8
+      95, 0,                    // keyword: 'width'
+      3,                        // int8: 3
+      5,                        // type: int8
+      96, 0,                    // keyword: 'height'
+      5,                        // int8: 5
+      2,                        // type: keyword
+      92, 0,                    // keyword: 'format'
+      93, 0,                    // keyword: 'grb'
+      4,                        // type: array
+      97, 0,                    // keyword: 'pixels'
+      8, 0,                     // length: 8 bytes
+      5,                        // type: int8
+      100,                      // int8: 100
+      5,                        // type: int8
+      0,                        // int8: 0
+      5,                        // type: int8
+      0,                        // int8: 0
+    ]));
+  });
+});
+
