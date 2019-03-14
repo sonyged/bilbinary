@@ -10,7 +10,7 @@ const bilbinary = require('../bilbinary.js'),
 const conversion_test = (script, binary) => {
   const text = JSON.stringify(script);
   const b = new Buffer(binary);
-  describe(`serialize ${script}`, function() {
+  describe(`serialize ${JSON.stringify(script)}`, function() {
     const trans = bilbinary.translator(script);
 
     it(`should be ${text} in binary format`, function() {
@@ -136,10 +136,19 @@ conversion_test({ x: { y: 1 } }, [
   0x00, 0x06, 0x00, 0x05,
   0x23, 0x00, 0x01
 ]);
+conversion_test({ x: [ 800 ] }, [
+  0x0a, 0x00, 0x04, 0x22,
+  0x00, 0x05, 0x00, 0x06,
+  0x20, 0x03
+]);
 conversion_test({ x: [ 8 ] }, [
-  0x09, 0x00, 0x04, 0x22,
-  0x00, 0x04, 0x00, 0x05,
-  0x08
+  0x08, 0x00, 0x08, 0x22,
+  0x00, 0x03, 0x00, 0x08
+]);
+conversion_test({ x: [ 2, 1, 0, -1, -2 ] }, [
+  0x0c, 0x00, 0x08, 0x22,
+  0x00, 0x07, 0x00, 0x02,
+  0x01, 0x00, 0xff, 0xfe
 ]);
 conversion_test({ name: 'wait' }, [
   0x07, 0x00, 0x02,
@@ -976,7 +985,7 @@ describe('translate led-matrix', function() {
 
   it('should translate nonexistent port-parameters', function() {
     assert.deepEqual(trans.translate(), new Buffer([
-      98, 0,                    // length: 98 bytes
+      95, 0,                    // length: 95 bytes
 
       // 'port-settings': {}
       3,                        // type: object
@@ -991,7 +1000,7 @@ describe('translate led-matrix', function() {
       // scripts: [ ...
       4,                        // type: array
       33, 0,                    // keyword: 'scripts'
-      83, 0,                    // length: 83 bytes
+      80, 0,                    // length: 80 bytes
 
       3,                        // type: object
       44, 0,                    // length: 44 bytes
@@ -1025,7 +1034,7 @@ describe('translate led-matrix', function() {
       94, 0,                    // keyword: 'brightness'
       154, 153, 153, 62,        // float: 0.3
       3,                        // type: object
-      35, 0,                    // keyword: 'y'
+      32, 0,                    // length: 32 bytes
       2,                        // type: keyword
       13, 0,                    // keyword: 'name'
       60, 0,                    // insn: 'image'
@@ -1041,14 +1050,11 @@ describe('translate led-matrix', function() {
       2,                        // type: keyword
       92, 0,                    // keyword: 'format'
       93, 0,                    // keyword: 'grb'
-      4,                        // type: array
+      8,                        // type: int8array
       97, 0,                    // keyword: 'pixels'
-      8, 0,                     // length: 8 bytes
-      5,                        // type: int8
+      5, 0,                     // length: 5 bytes
       100,                      // int8: 100
-      5,                        // type: int8
       0,                        // int8: 0
-      5,                        // type: int8
       0,                        // int8: 0
     ]));
   });
