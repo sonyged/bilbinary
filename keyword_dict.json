@@ -1,6 +1,6 @@
 {
   "name": "keyword_dict",
-  "version": "1.0.43",
+  "version": "1.0.46",
   "map": {
     "abs": 1,
     "sqrt": 2,
@@ -98,6 +98,7 @@
     "brightness": 94,
     "width": 95,
     "height": 96,
-    "pixels": 97
+    "pixels": 97,
+    "led-matrix": 98
   }
 }

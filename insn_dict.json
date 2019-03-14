@@ -1,6 +1,6 @@
 {
   "name": "insn_dict",
-  "version": "1.0.43",
+  "version": "1.0.46",
   "map": {
     "when-green-flag-clicked": 1,
     "repeat": 2,
