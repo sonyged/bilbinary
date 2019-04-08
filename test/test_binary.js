@@ -168,25 +168,25 @@ describe('translate wait', function() {
 });
 
 describe('translate function', function() {
-  const trans = bilbinary.translator({
-    'port-settings': {},
-    scripts: [
-      {
-        name: 'function', function: 'f', blocks: [
-          { name: 'wait', secs: 0.5 },
-        ]
-      },
-      {
-        name: 'when-green-flag-clicked', blocks: [
-          { name: 'call-function', function: 'f' },
-          { name: 'wait', secs: {
-            name: 'plus', x: 200, y: -50 }
-          }
-        ]
-      }
-    ]});
-
   it('should be function in binary format', function() {
+    const trans = bilbinary.translator({
+      "port-settings": {},
+      "scripts": [
+        {
+          "name": "function", "function": "f", "blocks": [
+            { "name": "wait", "secs": 0.5 }
+          ]
+        },
+        {
+          "name": "when-green-flag-clicked", "blocks": [
+            { "name": "call-function", "function": "f" },
+            { "name": "wait", "secs": {
+              "name": "plus", "x": 200, "y": -50 }
+            }
+          ]
+        }
+      ]});
+
     assert.deepEqual(trans.translate(), new Buffer([
       101, 0,                   // length: 101 bytes
 
@@ -268,6 +268,165 @@ describe('translate function', function() {
       5,                        // type: int8
       35, 0,                    // keyword: 'y'
       206,                      // int8: -50
+    ]));
+  });
+
+  it('should be function in binary format (wi/ python-info)', function() {
+    const trans = bilbinary.translator({
+      "port-settings": {},
+      "scripts": [
+        {
+          "name": "function",
+          "function": "f",
+          "blocks": [
+            {
+              "name": "wait",
+              "secs": 0.5,
+              "python-info": {
+                "lineno": 5,
+                "col_offset": 2
+              }
+            }
+          ],
+          "python-info": {
+            "lineno": 4,
+            "col_offset": 0
+          }
+        },
+        {
+          "name": "when-green-flag-clicked",
+          "blocks": [
+            {
+              "name": "call-function",
+              "function": "f",
+              "python-info": {
+                "lineno": 8,
+                "col_offset": 2
+              }
+            },
+            {
+              "name": "wait",
+              "secs": {
+                "name": "plus",
+                "x": 200,
+                "y": {
+                  "name": "minus",
+                  "x": 0,
+                  "y": 50,
+                  "python-info": {
+                    "lineno": 9,
+                    "col_offset": 18
+                  }
+                },
+                "python-info": {
+                  "lineno": 9,
+                  "col_offset": 12
+                }
+              },
+              "python-info": {
+                "lineno": 9,
+                "col_offset": 2
+              }
+            }
+          ],
+          "python-info": {
+            "lineno": 7,
+            "col_offset": 0
+          }
+        }
+      ]
+    });
+
+    assert.deepEqual(trans.translate(), new Buffer([
+      115, 0,                   // length: 115 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      2, 0,                     // length: 2 bytes
+
+      // port-parameters: {}
+      3,                        // type: object
+      88, 0,                    // keyword: 'port-parameters'
+      2, 0,                     // length: 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      100, 0,                   // length: 100 bytes
+
+      // { name: 'function', ... }
+      3,                        // type: object
+      31, 0,                    // length: 31 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      42, 0,                    // insn: 'function'
+      5,                        // type: int8
+      10, 0,                    // keywrod: 'function'
+      0,                        // int8: 0
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      17, 0,                    // length: 17 bytes
+      3,                        // type: object
+      14, 0,                    // length: 14
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+      1,                        // type: float
+      17, 0,                    // keyword: 'secs'
+      0, 0, 0, 63,              // float: 0.5
+
+      // { name: 'when-green-flag-clicked', ... }
+      3,                        // type: object
+      65, 0,                    // length: 65 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      1, 0,                     // insn: 'when-green-flag-clicked'
+
+      // blocks: [ ...
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      55, 0,                    // length: 55 bytes
+
+      // { name: 'call-function', ... }
+      3,                        // type: object
+      11, 0,                    // length: 11 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      43, 0,                    // insn: 'call-function'
+      5,                        // type: int8
+      10, 0,                    // keyword: 'function'
+      0,                        // int8: 0
+
+      // { name: 'wait', ... }
+      3,                        // type: object
+      40, 0,                    // length: 40 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      // secs: ...
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      30, 0,                    // length: 30 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      10, 0,                    // insn: 'plus'
+      6,                        // type: int16
+      34, 0,                    // keyword: 'x'
+      200, 0,                   // int16: 200
+      3,                        // type: object
+      35, 0,                    // keyword: 'y'
+      15, 0,                    // length: 15 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      11, 0,                    // insn: 'minus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      0,                        // int8: 0
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      50,                       // int8: 50
     ]));
   });
 });

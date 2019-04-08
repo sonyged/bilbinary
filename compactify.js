@@ -130,6 +130,7 @@ const compactify = (obj, fvlmap) => {
     return obj.map(x => compactify(x, fvlmap));
   if (immediate_p(obj))
     return obj;
+  delete obj['python-info'];
   return Object.keys(obj).reduce((acc, key) => {
     const v = obj[key];
     if (obj.name === 'call-function' && key === 'args') {
