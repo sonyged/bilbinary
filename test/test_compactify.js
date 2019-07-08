@@ -417,37 +417,96 @@ describe('compactify scripts', function() {
             { name: 'if-then',
               condition: {
                 name: 'equal?',
+                "python-info": {
+                  "visual": false,
+                  "lineno": -1,
+                  "col_offset": -1
+                },
                 x: { name: 'variable-ref', variable: 'p' },
                 y: 1 },
+              "python-info": {
+                "visual": false,
+                "lineno": -1,
+                "col_offset": -1
+              },
               blocks: [
                 { name: 'plus',
+                  "python-info": {
+                    "visual": false,
+                    "lineno": -1,
+                    "col_offset": -1
+                  },
                   x: { name: 'variable-ref', variable: 'p' },
                   y: { name: 'variable-ref', variable: 'q' } }]},
           ] },
         { name: 'function',
           function: 'f2',
-          args: [ { variable: 'x' }, { variable: 'y' } ],
+          args: [ {
+            variable: 'x',
+            "python-info": {
+              "visual": false,
+              "lineno": -1,
+              "col_offset": -1
+            },
+          }, {
+            variable: 'y',
+            "python-info": {
+              "visual": false,
+              "lineno": -1,
+              "col_offset": -1
+            },
+          } ],
           blocks: [
             { name: 'if-then',
               condition: {
                 name: 'equal?',
+                "python-info": {
+                  "visual": false,
+                  "lineno": -1,
+                  "col_offset": -1
+                },
                 x: { name: 'variable-ref', variable: 'p' },
                 y: { name: 'call-function',
                      function: 'f1',
                      args: [
                        { variable: 'p',
+                         "python-info": {
+                           "visual": false,
+                           "lineno": -1,
+                           "col_offset": -1
+                         },
                          value: {
                            name: 'multiply',
+                           "python-info": {
+                             "visual": false,
+                             "lineno": -1,
+                             "col_offset": -1
+                           },
                            x: { name: 'variable-ref', variable: 'y' },
                            y: { name: 'variable-ref', variable: 'x' } }},
                        { variable: 'q',
+                         "python-info": {
+                           "visual": false,
+                           "lineno": -1,
+                           "col_offset": -1
+                         },
                          value: {
                            name: 'divide',
+                           "python-info": {
+                             "visual": false,
+                             "lineno": -1,
+                             "col_offset": -1
+                           },
                            x: { name: 'variable-ref', variable: 'p' },
                            y: { name: 'variable-ref', variable: 'q' } }},
                      ], } },
               blocks: [
                 { name: 'plus',
+                  "python-info": {
+                    "visual": false,
+                    "lineno": -1,
+                    "col_offset": -1
+                  },
                   x: { name: 'variable-ref', variable: 'p' },
                   y: { name: 'variable-ref', variable: 'q' } }]},
           ] }
