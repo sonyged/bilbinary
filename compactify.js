@@ -130,7 +130,6 @@ const compactify = (obj, fvlmap) => {
     return obj.map(x => compactify(x, fvlmap));
   if (immediate_p(obj))
     return obj;
-  delete obj['python-info'];
   return Object.keys(obj).reduce((acc, key) => {
     const v = obj[key];
     if (obj.name === 'call-function' && key === 'args') {
@@ -222,7 +221,20 @@ const build_fvlmap = (scripts) => {
     image: {} })
 };
 
+const remove_python_info = (obj) => {
+  if (obj instanceof Array)
+    return obj.map(x => remove_python_info(x));
+  if (immediate_p(obj))
+    return obj;
+  delete obj['python-info'];
+  return Object.keys(obj).reduce((acc, key) => {
+    acc[key] = remove_python_info(obj[key]);
+    return acc;
+  }, {});
+};
+
 const compactify_scripts = (scripts, fvlmap) => {
+  scripts = remove_python_info(scripts);
   scripts = compactify_args(scripts, fvlmap);
   return compactify(scripts, fvlmap);
 };
