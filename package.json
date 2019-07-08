@@ -1,6 +1,6 @@
 {
   "name": "bilbinary",
-  "version": "1.0.49",
+  "version": "1.0.50",
   "description": "block intermediate language translator to binary form",
   "main": "bilbinary.js",
   "scripts": {
