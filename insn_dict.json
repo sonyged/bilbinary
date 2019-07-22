@@ -1,6 +1,6 @@
 {
   "name": "insn_dict",
-  "version": "1.0.31",
+  "version": "1.0.48",
   "map": {
     "when-green-flag-clicked": 1,
     "repeat": 2,
@@ -57,6 +57,13 @@
     "list-delete": 53,
     "list-replace": 54,
     "list-insert": 55,
-    "sound-sensor-value": 56
+    "sound-sensor-value": 56,
+    "return": 57,
+    "break": 58,
+    "continue": 59,
+    "image": 60,
+    "led-matrix": 61,
+    "color-sensor-value": 62,
+    "ultrasonic-distance-sensor-value": 63
   }
 }

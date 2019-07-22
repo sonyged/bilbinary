@@ -34,6 +34,7 @@ const BT_ARRAY = 0x04;          // json array
 const BT_INT8 = 0x05;           // 8 bit integer
 const BT_INT16 = 0x06;          // 16 bit integer
 const BT_INT32 = 0x07;          // 32 bit integer
+const BT_INT8ARRAY = 0x08;      // 8 bit integer array
 
 const byteLength = obj => Buffer.byteLength(obj, 'utf-8');
 
@@ -164,6 +165,17 @@ const pack_array = (key, obj) => {
   return b;
 };
 
+const pack_int8array = (key, obj) => {
+  const bs = [new Buffer(obj)];
+  const doc = pack_elist(bs);
+  const type = BT_INT8ARRAY;
+  let b = Buffer.allocUnsafe(header_size(key) + doc.length);
+  const offset = pack_key(b, key, type);
+
+  doc.copy(b, offset);
+  return b;
+};
+
 const { int8_p, int16_p, int32_p } = (() => {
   return [
     { name: 'int8_p', min: -128, max: 127 },
@@ -176,6 +188,8 @@ const { int8_p, int16_p, int32_p } = (() => {
     return acc;
   }, {});
 })();
+
+const int8array_p = obj => obj instanceof Array && obj.every(int8_p);
 
 const pack_int8 = (key, obj) => {
   let b = Buffer.allocUnsafe(header_size(key) + 1);
@@ -222,19 +236,29 @@ const pack_keyvalue = (key, obj) => {
   }
   if (typeof obj === 'string')
     return pack_keyword(key, obj);
+  if (int8array_p(obj) && obj.length > 0)
+    return pack_int8array(key, obj);
   if (obj instanceof Array)
     return pack_array(key, obj);
   if (obj instanceof Object)
     return pack_object(BT_OBJECT, key, obj, false);
-  throw new Error(`Unsupported value: ${obj} for key ${$key}`);
+  throw new Error(`Unsupported value: ${obj} for key ${key}`);
+};
+
+const read_esize = (b, offset) => {
+  const hsize = elist_hsize;
+  if (offset + hsize > b.length)
+    throw new Error(`Buffer too small: ${offset + hsize} > ${b.length}`);
+  const esize = hsize === 4 ? b.readUInt32LE(offset) : b.readUInt16LE(offset);
+  if (offset + esize > b.length)
+    throw new Error(`Element size too large: ${offset + esize} > ${b.length}`);
+  if (esize < hsize)
+    throw new Error(`Element size too small: ${esize} < ${hsize}`);
+  return { esize, hsize };
 };
 
 const unpack_elist = (b, offset, obj, unpack) => {
-  const hsize = elist_hsize;
-  let esize = hsize === 4 ? b.readUInt32LE(offset) : b.readUInt16LE(offset);
-
-  if (offset + esize > b.length)
-    throw new Error(`Element size too large: ${offset + esize} > ${b.length}`);
+  let { hsize, esize } = read_esize(b, offset);
 
   if (elist_nul)
     throw new Error(`Elist with terminating NUL is not supported yet`);
@@ -259,6 +283,20 @@ const unpack_array = (b, offset, push) => {
   let obj = [];
 
   offset = unpack_elist(b, offset, obj, unpack_value);
+  push(obj);
+  return offset;
+}
+
+const unpack_int8array = (b, offset, push) => {
+  let obj = [];
+  let { hsize, esize } = read_esize(b, offset);
+
+  esize += offset;
+  offset += hsize;
+  while (offset < esize) {
+    obj.push(b.readInt8(offset));
+    offset++;
+  }
   push(obj);
   return offset;
 }
@@ -296,6 +334,8 @@ const unpack_element = (type, b, offset, push) => {
     return offset + 2;
   case BT_ARRAY:
     return unpack_array(b, offset, push);
+  case BT_INT8ARRAY:
+    return unpack_int8array(b, offset, push);
   case BT_OBJECT:
     return unpack_object(b, offset, push);
   default:
