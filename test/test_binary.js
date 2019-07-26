@@ -964,6 +964,157 @@ describe('translate function with arguments', function() {
   });
 });
 
+describe('translate global variable with non-zero initializer', function() {
+  const trans = bilbinary.translator({
+    'port-settings': {},
+    scripts: [
+      { name: 'when-green-flag-clicked',
+        blocks: [
+          { name: 'wait', secs: { name: 'variable-ref', variable: 'v0' } },
+          { name: 'wait', secs: { name: 'variable-ref', variable: 'v1' } }
+        ]},
+      { name: 'variable', variable: 'v0', value: 5 },
+      { name: 'variable', variable: 'v1',
+        value: { name: 'plus', x: 1, y: 2 } }
+    ]});
+
+  it('should be function in binary format', function() {
+    assert.deepEqual(trans.translate(), new Buffer([
+      // begin 120 bytes
+      120, 0,                    // length: 120 bytes
+
+      // 'port-settings': {}
+      3,                        // type: object
+      32, 0,                    // keyword: 'port-settings'
+      // - begin 2 bytes
+      2, 0,                     // length: 2 bytes
+      // - end 2 bytes
+
+      // port-parameters: {}
+      3,                        // type: object
+      88, 0,                    // keyword: 'port-parameters'
+      // - begin 2 bytes
+      2, 0,                     // length: 2 bytes
+      // - end 2 bytes
+
+      // scripts: [ ...
+      4,                        // type: array
+      33, 0,                    // keyword: 'scripts'
+      105, 0,                   // length: 105 bytes
+
+      // { name: 'when-green-flag-clicked', ...
+      3,                        // type: object
+      // - begin 56 bytes
+      56, 0,                    // length: 56 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      1, 0,                     // insn: 'when-green-flag-clicked'
+
+      // blocks: [ ...
+      4,                        // type: array
+      26, 0,                    // keyword: 'blocks'
+      // -- begin 46 bytes
+      46, 0,                    // length: 46 bytes
+
+      // { name: 'wait', ... }
+      3,                        // type: object
+      // --- begin 21 bytes
+      21, 0,                    // length: 21 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      // ---- begin 11 bytes
+      11, 0,                    // length: 11 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      45, 0,                    // insn: 'variable-ref'
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      0,                        // int8: 0
+
+      // ---- end 11 bytes
+      // --- end 21 bytes
+
+      // { name: 'wait', ...
+      3,                        // type: object
+      // --- begin 21 bytes
+      21, 0,                    // length: 21 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      6, 0,                     // insn: 'wait'
+
+      3,                        // type: object
+      17, 0,                    // keyword: 'secs'
+      // ---- begin 11 bytes
+      11, 0,                    // length: 11 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      45, 0,                    // insn: 'variable-ref'
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      1,                        // int8: 1
+
+      // ---- end 11 bytes
+      // --- end 21 bytes
+      // -- begin 46 bytes
+      // - begin 56 bytes
+ 
+      3,                        // type: object
+      // - begin 15 bytes
+      15, 0,                    // length: 15 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      44, 0,                    // insn: 'variable'
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      0,                        // int8: 0
+
+      5,                        // type: int8
+      19, 0,                    // keyword: 'value'
+      5,                        // int8: 5
+      // - end 15 bytes
+
+      3,                        // type: object
+      // - begin 29 bytes
+      29, 0,                    // length: 29 bytes
+
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      44, 0,                    // insn: 'variable'
+
+      5,                        // type: int8
+      11, 0,                    // keyword: 'variable'
+      1,                        // int8: 1
+
+      3,                        // type: object
+      19, 0,                    // keyword: 'value'
+      // --- begin 15 bytes
+      15, 0,                    // length: 15 bytes
+      2,                        // type: keyword
+      13, 0,                    // keyword: 'name'
+      10, 0,                    // insn: 'plus'
+      5,                        // type: int8
+      34, 0,                    // keyword: 'x'
+      1,                        // int8: 1
+      5,                        // type: int8
+      35, 0,                    // keyword: 'y'
+      2,                        // int8: 2
+      // --- end 15 bytes
+      // -- end 29 bytes
+      // end 105 bytes
+    ]));
+  });
+});
+
 describe('translate no port-parameters', function() {
   const trans = bilbinary.translator({
     'port-settings': {},
