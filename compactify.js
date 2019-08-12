@@ -240,6 +240,7 @@ const compactify_scripts = (scripts, fvlmap) => {
 };
 
 const compactify_toplevel = (script) => {
+  script = remove_python_info(script);
   if (!script.scripts)
     return compactify_scripts(script, {
       locals: {}, function: {}, variable: {}, list: {} });
