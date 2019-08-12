@@ -723,5 +723,53 @@ describe('compactify scripts', function() {
             ] }
         ]
       });
+
+    assert.deepEqual(compactify_toplevel({
+      "port-settings": {
+        "A0": "push-button",
+        "A1": "push-button",
+        "A2": "push-button",
+        "A3": "push-button",
+        "V0": "dc-motor",
+        "V1": "dc-motor",
+        "V2": "led",
+        "V3": "led",
+        "V4": "led",
+        "V6": "buzzer",
+        "V7": "servo-motor",
+        "V8": "servo-motor",
+        "python-info": {},
+      },
+      "port-parameters": {
+        "python-info": {},
+        "V0": { "dc-motor": { "scale": 0.8, "python-info": {} } },
+        "V1": { "dc-motor": { "scale": 0 }, "python-info": {} },
+        "V6": { "servo-motor": { "degree": 180, "python-info": {} } },
+        "V7": { "servo-motor": { "drift": 10 }, "python-info": {} },
+        "V8": { "servo-motor": { "degree": 0, "drift": -10 } }
+      },
+    }), {
+      "port-settings": {
+        "A0": "push-button",
+        "A1": "push-button",
+        "A2": "push-button",
+        "A3": "push-button",
+        "V0": "dc-motor",
+        "V1": "dc-motor",
+        "V2": "led",
+        "V3": "led",
+        "V4": "led",
+        "V6": "buzzer",
+        "V7": "servo-motor",
+        "V8": "servo-motor"
+      },
+      "port-parameters": {
+        "V0": { "dc-motor": { "scale": 0.8 } },
+        "V1": { "dc-motor": { "scale": 0 } },
+        "V6": { "servo-motor": { "degree": 180 } },
+        "V7": { "servo-motor": { "drift": 10 } },
+        "V8": { "servo-motor": { "degree": 0, "drift": -10 } }
+      },
+    });
   });
 });
